@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprenda sobre Rochas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .rocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .rock-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .rock-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        .rock-card .emoji {
+            font-size: 3rem;
+            display: block;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .rock-card h3 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .rock-card .type {
+            color: #666;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        /* Detail View */
+        .detail-view {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .detail-view.active {
+            display: block;
+        }
+        .back-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            transition: background 0.3s;
+        }
+        .back-btn:hover {
+            background: #5a6fd6;
+        }
+        .rock-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .rock-header .emoji {
+            font-size: 3rem;
+        }
+        .rock-header h2 {
+            color: #333;
+        }
+        .rock-header .type {
+            color: #666;
+        }
+        
+        .options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        .option-btn {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        .option-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        .option-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-left: 5px solid #4CAF50;
+            padding: 20px;
+            border-radius: 0 10px 10px 0;
+            line-height: 1.8;
+            white-space: pre-line;
+        }
+        .info-box h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .placeholder {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🪨 Aprenda sobre Rochas</h1>
+        
+        <div id="rocksList" class="rocks-grid"></div>
+        
+        <div id="detailView" class="detail-view">
+            <button class="back-btn" onclick="showList()">⬅️ Voltar</button>
+            <div class="rock-header">
+                <span class="emoji" id="detailEmoji"></span>
+                <div>
+                    <h2 id="detailName"></h2>
+                    <p class="type" id="detailType"></p>
+                </div>
+            </div>
+            
+            <h3>O que você deseja saber?</h3>
+            <div class="options">
+                <button class="option-btn" onclick="showInfo('composicao')">🔬 Composição Mineralógica</button>
+                <button class="option-btn" onclick="showInfo('formacao')">🌍 Ambiente de Formação</button>
+                <button class="option-btn" onclick="showInfo('locais')">📍 Principais Locais</button>
+            </div>
+            
+            <div id="infoContent"></div>
+        </div>
+    </div>
+
+    <script src="data/rochas.js"></script>
+    <script>
+        let currentRock = null;
+        
+        function renderRocks() {
+            const container = document.getElementById('rocksList');
+            container.innerHTML = rochas.map(rock => `
+                <div class="rock-card" onclick="selectRock('${rock.nome}')">
+                    <span class="emoji">${rock.imagem}</span>
+                    <h3>${rock.nome}</h3>
+                    <p class="type">${rock.tipo}</p>
+                </div>
+            `).join('');
+        }
+        
+        function selectRock(name) {
+            currentRock = rochas.find(r => r.nome === name);
+            if (!currentRock) return;
+            
+            document.getElementById('rocksList').style.display = 'none';
+            document.getElementById('detailView').classList.add('active');
+            
+            document.getElementById('detailEmoji').textContent = currentRock.imagem;
+            document.getElementById('detailName').textContent = currentRock.nome;
+            document.getElementById('detailType').textContent = currentRock.tipo;
+            document.getElementById('infoContent').innerHTML = '<p class="placeholder">👆 Selecione uma das opções acima para saber mais sobre esta rocha.</p>';
+            
+            // Reset buttons
+            document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active'));
+        }
+        
+        function showList() {
+            document.getElementById('rocksList').style.display = 'grid';
+            document.getElementById('detailView').classList.remove('active');
+            currentRock = null;
+        }
+        
+        function showInfo(type) {
+            if (!currentRock) return;
+            
+            // Update active button
+            document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            let title, content;
+            switch(type) {
+                case 'composicao':
+                    title = '🔬 Composição Mineralógica';
+                    content = currentRock.composicao_mineralogica;
+                    break;
+                case 'formacao':
+                    title = '🌍 Ambiente de Formação';
+                    content = currentRock.ambiente_formacao;
+                    break;
+                case 'locais':
+                    title = '📍 Principais Locais no Mundo';
+                    content = currentRock.principais_locais;
+                    break;
+            }
+            
+            document.getElementById('infoContent').innerHTML = `
+                <div class="info-box">
+                    <h3>${title}</h3>
+                    <p>${content}</p>
+                </div>
+            `;
+        }
+        
+        // Initialize
+        renderRocks();
+    </script>
+</body>
+</html>
